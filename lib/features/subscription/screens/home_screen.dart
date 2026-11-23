@@ -18,6 +18,8 @@ import '../../requests/providers/request_providers.dart';
 import '../../requests/screens/request_routine_screen.dart';
 import '../../workout/providers/workout_providers.dart';
 import '../../workout/screens/workout_history_screen.dart';
+import '../../nutrition/providers/meal_plan_providers.dart';
+import '../../nutrition/screens/meal_plan_screen.dart';
 import '../models/subscription.dart';
 import '../providers/subscription_providers.dart';
 
@@ -42,6 +44,7 @@ class HomeScreen extends ConsumerWidget {
             ref.invalidate(weeklyActivityProvider);
             ref.invalidate(workoutHistoryProvider);
             ref.invalidate(latestRequestProvider);
+            ref.invalidate(myMealPlanProvider);
             await ref.refresh(mySubscriptionsProvider.future);
           },
           child: ListView(
@@ -165,6 +168,8 @@ class HomeScreen extends ConsumerWidget {
 
               // ---------- Mis entrenos ----------
               const _LastWorkoutCard(),
+              const SizedBox(height: 12),
+              const _MealPlanCard(),
               const SizedBox(height: 28),
 
               // ---------- Actividad (reloj) ----------
@@ -655,6 +660,56 @@ class _LastWorkoutCard extends ConsumerWidget {
             color: theme.colorScheme.onSecondaryContainer),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const WorkoutHistoryScreen()),
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// Acceso al plan de alimentación
+// =====================================================================
+class _MealPlanCard extends ConsumerWidget {
+  const _MealPlanCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final planAsync = ref.watch(myMealPlanProvider);
+    final plan = planAsync.value;
+
+    final subtitle = planAsync.isLoading
+        ? 'Cargando...'
+        : plan == null
+            ? 'Tu coach aún no te ha asignado un plan'
+            : '${plan.mealLabels.length} '
+                '${plan.mealLabels.length == 1 ? 'comida' : 'comidas'} · '
+                '${plan.items.length} '
+                '${plan.items.length == 1 ? 'alimento' : 'alimentos'}';
+
+    return Card(
+      elevation: 0,
+      color: theme.colorScheme.tertiaryContainer,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        leading: CircleAvatar(
+          backgroundColor: theme.colorScheme.tertiary,
+          child: Icon(Icons.restaurant_menu,
+              color: theme.colorScheme.onTertiary),
+        ),
+        title: Text(
+          'Plan de alimentación',
+          style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onTertiaryContainer),
+        ),
+        subtitle: Text(subtitle,
+            style: TextStyle(color: theme.colorScheme.onTertiaryContainer)),
+        trailing: Icon(Icons.chevron_right,
+            color: theme.colorScheme.onTertiaryContainer),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const MealPlanScreen()),
         ),
       ),
     );
